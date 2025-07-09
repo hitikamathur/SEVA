@@ -4,63 +4,52 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
 import { User, Phone, MapPin, AlertCircle } from "lucide-react";
 
-const requestSchema = z.object({
+const bookingSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   phone: z.string().min(10, "Phone number must be at least 10 digits"),
   emergencyType: z.string().min(1, "Emergency type is required"),
   location: z.string().min(5, "Location details are required"),
-  description: z.string().optional(),
+  notes: z.string().optional(),
 });
 
-type RequestFormData = z.infer<typeof requestSchema>;
+type BookingFormData = z.infer<typeof bookingSchema>;
 
-interface RequestModalProps {
+interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onBooking: (data: BookingFormData) => void;
+  driverName: string;
+  driverPhone: string;
 }
 
-export default function RequestModal({ isOpen, onClose, onSuccess }: RequestModalProps) {
+export default function BookingModal({ isOpen, onClose, onBooking, driverName, driverPhone }: BookingModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
 
-  const form = useForm<RequestFormData>({
-    resolver: zodResolver(requestSchema),
+  const form = useForm<BookingFormData>({
+    resolver: zodResolver(bookingSchema),
     defaultValues: {
       name: "",
       phone: "",
       emergencyType: "",
       location: "",
-      description: "",
+      notes: "",
     },
   });
 
-  const handleSubmit = async (data: RequestFormData) => {
+  const handleSubmit = async (data: BookingFormData) => {
     setIsSubmitting(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      toast({
-        title: "Request Sent Successfully",
-        description: "We've notified nearby ambulances. You'll receive a call shortly.",
-      });
-      
+      await onBooking(data);
       form.reset();
       onClose();
-      onSuccess();
     } catch (error) {
-      toast({
-        title: "Request Failed",
-        description: "Please try again or call 108 directly.",
-        variant: "destructive",
-      });
+      console.error("Booking error:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -75,11 +64,6 @@ export default function RequestModal({ isOpen, onClose, onSuccess }: RequestModa
         },
         (error) => {
           console.error("Location error:", error);
-          toast({
-            title: "Location Error",
-            description: "Please enter your location manually.",
-            variant: "destructive",
-          });
         }
       );
     }
@@ -89,9 +73,19 @@ export default function RequestModal({ isOpen, onClose, onSuccess }: RequestModa
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Request Emergency Ambulance</DialogTitle>
+          <DialogTitle>Book Ambulance</DialogTitle>
         </DialogHeader>
         
+        <div className="mb-4 p-4 bg-blue-50 rounded-lg">
+          <h3 className="font-semibold text-blue-800 mb-2">Driver Details</h3>
+          <p className="text-sm text-blue-700">
+            <strong>Name:</strong> {driverName}
+          </p>
+          <p className="text-sm text-blue-700">
+            <strong>Phone:</strong> {driverPhone}
+          </p>
+        </div>
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <FormField
@@ -192,14 +186,14 @@ export default function RequestModal({ isOpen, onClose, onSuccess }: RequestModa
 
             <FormField
               control={form.control}
-              name="description"
+              name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description (Optional)</FormLabel>
+                  <FormLabel>Additional Notes (Optional)</FormLabel>
                   <FormControl>
                     <Textarea
                       {...field}
-                      placeholder="Brief description of the emergency..."
+                      placeholder="Any additional information..."
                       className="resize-none"
                       rows={3}
                     />
@@ -223,7 +217,7 @@ export default function RequestModal({ isOpen, onClose, onSuccess }: RequestModa
                 disabled={isSubmitting}
                 className="flex-1 bg-red-600 hover:bg-red-700"
               >
-                {isSubmitting ? "Sending..." : "Send Request"}
+                {isSubmitting ? "Booking..." : "Book Ambulance"}
               </Button>
             </div>
           </form>

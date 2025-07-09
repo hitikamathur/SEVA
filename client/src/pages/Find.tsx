@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { subscribeToAmbulances, initializeSampleAmbulances } from "@/lib/firebase";
 import { useLocation } from "wouter";
+import BookingModal from "@/components/BookingModal";
 
 // Leaflet imports
 import L from "leaflet";
@@ -22,6 +23,8 @@ export default function Find() {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [ambulances, setAmbulances] = useState<any>({});
   const [locationStatus, setLocationStatus] = useState<string>("");
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [selectedDriver, setSelectedDriver] = useState<{id: string, name: string, phone: string} | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
 
@@ -130,8 +133,35 @@ export default function Find() {
   };
 
   const bookAmbulance = (driverId: string) => {
-    // For now, just redirect to track page
-    setLocation(`/track?driverId=${driverId}`);
+    const ambulance = ambulances[driverId];
+    if (ambulance) {
+      setSelectedDriver({
+        id: driverId,
+        name: ambulance.driverName || 'Unknown Driver',
+        phone: ambulance.phone || 'N/A'
+      });
+      setShowBookingModal(true);
+    }
+  };
+
+  const handleBookingSubmit = async (bookingData: any) => {
+    console.log('Booking data:', bookingData);
+    // Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000);
+    
+    // Store booking data in localStorage for tracking page
+    localStorage.setItem('currentBooking', JSON.stringify({
+      ...bookingData,
+      driverId: selectedDriver?.id,
+      driverName: selectedDriver?.name,
+      driverPhone: selectedDriver?.phone,
+      otp: otp,
+      status: 'confirmed',
+      timestamp: new Date().toISOString()
+    }));
+    
+    // Redirect to tracking page
+    setLocation(`/track?driverId=${selectedDriver?.id}`);
   };
 
   const calculateETA = (ambulanceLat: number, ambulanceLng: number) => {
@@ -233,6 +263,16 @@ export default function Find() {
           ))
         )}
       </div>
+
+      {selectedDriver && (
+        <BookingModal
+          isOpen={showBookingModal}
+          onClose={() => setShowBookingModal(false)}
+          onBooking={handleBookingSubmit}
+          driverName={selectedDriver.name}
+          driverPhone={selectedDriver.phone}
+        />
+      )}
     </div>
   );
 }

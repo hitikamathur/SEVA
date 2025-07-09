@@ -4,26 +4,42 @@ const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || impo
 
 export async function getFirstAidResponse(symptom: string): Promise<string> {
   try {
-    const prompt = `You are a medical first aid assistant. Provide immediate, safe, and clear first aid instructions for: ${symptom}. 
+    const prompt = `You are an emergency medical first aid assistant. A person is experiencing: "${symptom}". 
 
-    Format your response as exactly 5-6 numbered steps with brief, actionable instructions. Example format:
-    1. [Action step]
-    2. [Action step]
-    3. [Action step]
-    4. [Action step]
-    5. [Action step]
-    6. Call 108 immediately if condition worsens
+    Provide specific, immediate first aid instructions for this exact condition. Format your response as exactly 5-6 numbered steps with brief, actionable instructions.
 
-    Keep each step under 15 words and focus on immediate actions for untrained individuals.`;
+    Requirements:
+    - Each step must be specific to the symptom "${symptom}"
+    - Keep each step under 20 words
+    - Focus on immediate, safe actions for untrained individuals
+    - Include when to call 108 (India emergency number)
+    - Avoid generic advice - make it specific to the condition
+    - Include what NOT to do if important
+
+    Format:
+    1. [Specific action for this symptom]
+    2. [Specific action for this symptom]
+    3. [Specific action for this symptom]
+    4. [Specific action for this symptom]
+    5. [Specific action for this symptom]
+    6. Call 108 immediately if [specific warning signs for this condition]`;
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: prompt,
     });
 
-    return response.text || "1. Call 108 immediately for emergency services\n2. Stay calm and assess the situation carefully\n3. Do not move the person unless absolutely necessary\n4. Apply basic first aid if you are trained\n5. Keep the person comfortable and conscious\n6. Wait for professional medical help to arrive";
+    const responseText = response.text || "";
+    
+    // Ensure we have a response and it's specific to the symptom
+    if (responseText && responseText.length > 50 && responseText.includes(symptom.toLowerCase())) {
+      return responseText;
+    }
+    
+    // Fallback with symptom-specific default
+    return `1. Call 108 immediately for ${symptom.toLowerCase()} emergency\n2. Stay calm and keep the person comfortable\n3. Do not leave the person alone\n4. Monitor breathing and consciousness\n5. Be ready to provide CPR if trained\n6. Wait for professional medical help to arrive`;
   } catch (error) {
     console.error("Error getting first aid response:", error);
-    return "1. Call 108 immediately for emergency services\n2. Stay calm and assess the situation carefully\n3. Do not move the person unless absolutely necessary\n4. Apply basic first aid if you are trained\n5. Keep the person comfortable and conscious\n6. Wait for professional medical help to arrive";
+    return `1. Call 108 immediately for ${symptom.toLowerCase()} emergency\n2. Stay calm and keep the person comfortable\n3. Do not leave the person alone\n4. Monitor breathing and consciousness\n5. Be ready to provide CPR if trained\n6. Wait for professional medical help to arrive`;
   }
 }

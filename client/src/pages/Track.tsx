@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
+import { MapPin, Phone, Clock, AlertCircle, User, Shield } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { subscribeToAmbulanceLocation } from "@/lib/firebase";
 
 // Leaflet imports
@@ -11,6 +13,7 @@ export default function Track() {
   const [location] = useLocation();
   const [ambulanceData, setAmbulanceData] = useState<any>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [bookingData, setBookingData] = useState<any>(null);
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const ambulanceMarkerRef = useRef<L.Marker | null>(null);
@@ -19,6 +22,12 @@ export default function Track() {
   const driverId = new URLSearchParams(location.split('?')[1] || '').get('driverId') || 'driver001';
 
   useEffect(() => {
+    // Load booking data from localStorage
+    const savedBooking = localStorage.getItem('currentBooking');
+    if (savedBooking) {
+      setBookingData(JSON.parse(savedBooking));
+    }
+
     // Get user location
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
@@ -104,61 +113,115 @@ export default function Track() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle className="text-2xl">Live Ambulance Tracking</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {ambulanceData && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-blue-900">Driver</h3>
-                <p className="text-blue-800">{ambulanceData.driverName}</p>
-              </div>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-green-900">Status</h3>
-                <p className="text-green-800">En Route</p>
-              </div>
-              <div className="bg-yellow-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-yellow-900">ETA</h3>
-                <p className="text-yellow-800">{calculateETA()}</p>
-              </div>
-            </div>
-          )}
-          
-          <div 
-            ref={mapContainerRef}
-            className="h-96 rounded-lg overflow-hidden border"
-          />
-        </CardContent>
-      </Card>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <MapPin className="mr-2 h-5 w-5 text-red-600" />
+                Live Tracking
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div 
+                ref={mapContainerRef}
+                className="w-full h-96 rounded-lg border"
+                style={{ minHeight: '400px' }}
+              />
+            </CardContent>
+          </Card>
+        </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Patient Information</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-gray-600 mb-2">
-                <strong>Name:</strong> <span>John Doe</span>
-              </p>
-              <p className="text-gray-600 mb-2">
-                <strong>Contact:</strong> <span>+91 9876543210</span>
-              </p>
-            </div>
-            <div>
-              <p className="text-gray-600 mb-2">
-                <strong>Emergency:</strong> <span>Chest pain</span>
-              </p>
-              <p className="text-gray-600 mb-2">
-                <strong>Request Time:</strong> <span>{new Date().toLocaleTimeString()}</span>
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        <div className="space-y-6">
+          {bookingData && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <User className="mr-2 h-5 w-5 text-blue-600" />
+                  Booking Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Patient:</span>
+                    <span className="text-sm">{bookingData.name}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Phone:</span>
+                    <span className="text-sm">{bookingData.phone}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Emergency:</span>
+                    <span className="text-sm">{bookingData.emergencyType}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Status:</span>
+                    <Badge className="bg-green-100 text-green-800">Confirmed</Badge>
+                  </div>
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <div className="flex items-center">
+                      <Shield className="mr-2 h-4 w-4 text-yellow-600" />
+                      <span className="text-sm font-medium text-yellow-800">OTP: {bookingData.otp}</span>
+                    </div>
+                    <p className="text-xs text-yellow-700 mt-1">Share this OTP with the ambulance crew</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Ambulance Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {ambulanceData ? (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Driver:</span>
+                    <span className="text-sm">{ambulanceData.driverName}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Phone:</span>
+                    <span className="text-sm">{ambulanceData.phone}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Type:</span>
+                    <span className="text-sm">{ambulanceData.type}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Status:</span>
+                    <Badge className="bg-green-100 text-green-800">En Route</Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">ETA:</span>
+                    <span className="text-sm font-medium text-blue-600">{calculateETA()}</span>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-500">Loading ambulance details...</p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Emergency Tips</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 text-sm">
+                <p>• Stay calm and keep patient comfortable</p>
+                <p>• Do not move patient unless necessary</p>
+                <p>• Keep airways clear</p>
+                <p>• Be ready to provide information to paramedics</p>
+                <p>• Have OTP ready for ambulance crew</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

@@ -226,7 +226,7 @@ export default function Hospitals() {
   };
 
   const filterHospitals = () => {
-    if (!selectedEmergency) {
+    if (!selectedEmergency || selectedEmergency === "all") {
       setFilteredHospitals(hospitals);
       return;
     }
@@ -277,7 +277,7 @@ export default function Hospitals() {
                   <SelectValue placeholder="Select emergency type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Hospitals</SelectItem>
+                  <SelectItem value="all">All Hospitals</SelectItem>
                   <SelectItem value="cardiac">Cardiac Emergency</SelectItem>
                   <SelectItem value="trauma">Trauma/Accident</SelectItem>
                   <SelectItem value="neuro">Neurological</SelectItem>
