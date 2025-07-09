@@ -1,260 +1,168 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { User, Phone, MapPin, AlertCircle } from "lucide-react";
-
-const bookingSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  phone: z.string().min(10, "Phone number must be at least 10 digits"),
-  emergencyType: z.string().min(1, "Emergency type is required"),
-  location: z.string().min(5, "Location details are required"),
-  notes: z.string().optional(),
-});
-
-type BookingFormData = z.infer<typeof bookingSchema>;
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { database } from "@/lib/firebase";
+import { ref, push } from "firebase/database";
 
 interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onBooking: (data: BookingFormData) => void;
-  driverName: string;
-  driverPhone: string;
+  ambulanceId?: string;
+  driverName?: string;
 }
 
-export default function BookingModal({ isOpen, onClose, onBooking, driverName, driverPhone }: BookingModalProps) {
+export default function BookingModal({ 
+  isOpen, 
+  onClose, 
+  ambulanceId, 
+  driverName 
+}: BookingModalProps) {
+  const [formData, setFormData] = useState({
+    patientName: "",
+    phone: "",
+    emergency: "",
+    address: ""
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<BookingFormData>({
-    resolver: zodResolver(bookingSchema),
-    defaultValues: {
-      name: "",
-      phone: "",
-      emergencyType: "",
-      location: "",
-      notes: "",
-    },
-  });
+  if (!isOpen) return null;
 
-  const handleSubmit = async (data: BookingFormData) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.patientName || !formData.phone || !formData.emergency) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
     setIsSubmitting(true);
-    try {
-      // Create the booking request
-      const bookingData = {
-        patientName: data.name,
-        patientPhone: data.phone,
-        emergency: data.emergencyType,
-        location: data.location,
-        description: data.notes || "",
-        driverId: driverName, // Use the driver ID from props
-      };
 
-      // Send to backend
-      const response = await fetch('/api/requests', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(bookingData),
+    try {
+      // Get current location
+      const location = await new Promise<GeolocationPosition>((resolve, reject) => {
+        if (!navigator.geolocation) {
+          reject(new Error("Geolocation not supported"));
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        });
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to create booking');
-      }
+      const bookingData = {
+        ...formData,
+        ambulanceId: ambulanceId || "auto-assign",
+        driverName: driverName || "Auto-assigned",
+        location: {
+          lat: location.coords.latitude,
+          lng: location.coords.longitude
+        },
+        timestamp: Date.now(),
+        status: "pending"
+      };
 
-      const result = await response.json();
-      
-      // Store booking data for tracking
-      localStorage.setItem('currentBooking', JSON.stringify({
-        ...result,
-        driverName,
-        driverPhone
-      }));
+      // Save to Firebase
+      await push(ref(database, 'ambulance-requests'), bookingData);
 
-      await onBooking(data);
-      form.reset();
+      alert("Ambulance request submitted successfully!");
+      setFormData({
+        patientName: "",
+        phone: "",
+        emergency: "",
+        address: ""
+      });
       onClose();
     } catch (error) {
-      console.error("Booking error:", error);
+      console.error("Error submitting booking:", error);
+      alert("Failed to submit booking. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const getCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          form.setValue("location", `${latitude}, ${longitude}`);
-        },
-        (error) => {
-          console.error("Location error:", error);
-        }
-      );
-    }
-  };
-
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Book Ambulance</DialogTitle>
-        </DialogHeader>
-        
-        <div className="mb-4 p-4 bg-blue-50 rounded-lg">
-          <h3 className="font-semibold text-blue-800 mb-2">Driver Details</h3>
-          <p className="text-sm text-blue-700">
-            <strong>Name:</strong> {driverName}
-          </p>
-          <p className="text-sm text-blue-700">
-            <strong>Phone:</strong> {driverPhone}
-          </p>
-        </div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-lg font-semibold">Book Ambulance</CardTitle>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="h-4 w-4" />
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="patientName">Patient Name *</Label>
+              <Input
+                id="patientName"
+                value={formData.patientName}
+                onChange={(e) => setFormData(prev => ({ ...prev, patientName: e.target.value }))}
+                placeholder="Enter patient name"
+                required
+              />
+            </div>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Full Name</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        {...field}
-                        placeholder="Enter your full name"
-                        className="pl-9"
-                      />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number *</Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                placeholder="Enter phone number"
+                required
+              />
+            </div>
 
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        {...field}
-                        placeholder="Enter phone number"
-                        className="pl-9"
-                      />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="space-y-2">
+              <Label htmlFor="emergency">Emergency Description *</Label>
+              <Textarea
+                id="emergency"
+                value={formData.emergency}
+                onChange={(e) => setFormData(prev => ({ ...prev, emergency: e.target.value }))}
+                placeholder="Describe the emergency"
+                required
+              />
+            </div>
 
-            <FormField
-              control={form.control}
-              name="emergencyType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Emergency Type</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <AlertCircle className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        {...field}
-                        placeholder="e.g., Accident, Heart Attack, Breathing Problem"
-                        className="pl-9"
-                      />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="space-y-2">
+              <Label htmlFor="address">Address (Optional)</Label>
+              <Textarea
+                id="address"
+                value={formData.address}
+                onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                placeholder="Enter pickup address (current location will be used if empty)"
+              />
+            </div>
 
-            <FormField
-              control={form.control}
-              name="location"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Current Location</FormLabel>
-                  <FormControl>
-                    <div className="space-y-2">
-                      <div className="relative">
-                        <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input
-                          {...field}
-                          placeholder="Enter your location or address"
-                          className="pl-9"
-                        />
-                      </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={getCurrentLocation}
-                        className="w-full"
-                      >
-                        <MapPin className="mr-2 h-4 w-4" />
-                        Use Current Location
-                      </Button>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {ambulanceId && (
+              <div className="p-3 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <strong>Driver:</strong> {driverName}
+                </p>
+                <p className="text-sm text-blue-800">
+                  <strong>Ambulance ID:</strong> {ambulanceId}
+                </p>
+              </div>
+            )}
 
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Additional Notes (Optional)</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      placeholder="Any additional information..."
-                      className="resize-none"
-                      rows={3}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="flex gap-3 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onClose}
-                className="flex-1"
-              >
+            <div className="flex space-x-3">
+              <Button type="button" variant="outline" onClick={onClose} className="flex-1">
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex-1 bg-red-600 hover:bg-red-700"
-              >
-                {isSubmitting ? "Booking..." : "Book Ambulance"}
+              <Button type="submit" disabled={isSubmitting} className="flex-1">
+                {isSubmitting ? "Submitting..." : "Submit Request"}
               </Button>
             </div>
           </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

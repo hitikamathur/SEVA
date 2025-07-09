@@ -13,10 +13,10 @@ const firebaseConfig = {
 
 let app;
 try {
-  app = initializeApp(firebaseConfig);
+  app = getApp();
 } catch (error: any) {
-  if (error.code === 'app/duplicate-app') {
-    app = getApp('seva-app') || initializeApp(firebaseConfig, 'seva-app');
+  if (error.code === 'app/no-app') {
+    app = initializeApp(firebaseConfig);
   } else {
     throw error;
   }
