@@ -70,65 +70,96 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Feature Navigation Buttons */}
+      {/* Quick Emergency Services */}
       <section className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-8">
-            {services.map((service) => (
-              <Button
-                key={service.title}
-                onClick={() => setLocation(service.href)}
-                variant="outline"
-                size="lg"
-                className="w-full md:w-auto px-8 py-6 flex items-center justify-center space-x-3 bg-white hover:bg-blue-50 border-2 border-blue-600 text-blue-600 hover:text-blue-700 transition-all duration-300"
-              >
-                <service.icon className="h-6 w-6" />
-                <span className="font-semibold">{service.title}</span>
+          <h2 className="text-3xl font-bold text-center mb-8">Quick Emergency Services</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-white border-2 border-red-200 rounded-lg p-6 text-center hover:shadow-lg transition-shadow cursor-pointer"
+                 onClick={() => setLocation("/find")}>
+              <SearchIcon className="h-12 w-12 text-red-600 mx-auto mb-4" />
+              <h3 className="font-semibold text-gray-800 mb-2">Find Nearby Ambulance</h3>
+              <p className="text-gray-600 text-sm mb-4">Locate available ambulances in your area</p>
+              <Button className="w-full bg-red-600 hover:bg-red-700 text-white">
+                Search Now
               </Button>
-            ))}
+            </div>
+            
+            <div className="bg-white border-2 border-blue-200 rounded-lg p-6 text-center hover:shadow-lg transition-shadow cursor-pointer"
+                 onClick={() => setLocation("/track")}>
+              <Route className="h-12 w-12 text-blue-600 mx-auto mb-4" />
+              <h3 className="font-semibold text-gray-800 mb-2">Track Ambulance</h3>
+              <p className="text-gray-600 text-sm mb-4">Real-time tracking of your ambulance</p>
+              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                Track Now
+              </Button>
+            </div>
+            
+            <div className="bg-white border-2 border-green-200 rounded-lg p-6 text-center hover:shadow-lg transition-shadow cursor-pointer"
+                 onClick={() => setLocation("/firstaid")}>
+              <Cross className="h-12 w-12 text-green-600 mx-auto mb-4" />
+              <h3 className="font-semibold text-gray-800 mb-2">AI First Aid</h3>
+              <p className="text-gray-600 text-sm mb-4">Get instant first aid guidance</p>
+              <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+                Get Help
+              </Button>
+            </div>
+            
+            <div className="bg-white border-2 border-purple-200 rounded-lg p-6 text-center hover:shadow-lg transition-shadow cursor-pointer"
+                 onClick={() => setLocation("/hospitals")}>
+              <Hospital className="h-12 w-12 text-purple-600 mx-auto mb-4" />
+              <h3 className="font-semibold text-gray-800 mb-2">Find Hospitals</h3>
+              <p className="text-gray-600 text-sm mb-4">Locate nearby emergency hospitals</p>
+              <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white">
+                Find Hospitals
+              </Button>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Main Content - Horizontal Layout */}
+      {/* Why Choose SEVA */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Emergency Numbers */}
-            <div>
-              <h2 className="text-3xl font-bold mb-8 text-center">Emergency Contacts</h2>
-              <div className="grid grid-cols-1 gap-6">
-                {emergencyNumbers.map((contact) => (
-                  <div key={contact.number} className="flex items-center p-6 bg-white rounded-lg shadow-md">
-                    <contact.icon className={`h-12 w-12 mr-6 ${contact.color}`} />
-                    <div>
-                      <h3 className="text-xl font-semibold">{contact.label}</h3>
-                      <p className={`text-2xl font-bold ${contact.color}`}>{contact.number}</p>
-                    </div>
-                  </div>
-                ))}
+          <h2 className="text-3xl font-bold text-center mb-12">Why Choose SEVA?</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Ambulance className="h-8 w-8 text-red-600" />
               </div>
+              <h3 className="text-xl font-semibold mb-2">Fast Response</h3>
+              <p className="text-gray-600">Quick ambulance booking with real-time tracking and ETA updates</p>
             </div>
+            <div className="text-center">
+              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Shield className="h-8 w-8 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Verified Services</h3>
+              <p className="text-gray-600">All ambulances and drivers are verified and regularly monitored</p>
+            </div>
+            <div className="text-center">
+              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Cross className="h-8 w-8 text-green-600" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">AI Assistance</h3>
+              <p className="text-gray-600">Get instant first aid guidance powered by advanced AI technology</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-            {/* Services Info */}
-            <div>
-              <h2 className="text-3xl font-bold mb-8 text-center">Our Services</h2>
-              <div className="grid grid-cols-1 gap-6">
-                {services.map((service) => (
-                  <div
-                    key={service.title}
-                    className="flex items-center p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
-                    onClick={() => setLocation(service.href)}
-                  >
-                    <service.icon className="h-12 w-12 text-blue-600 mr-6 flex-shrink-0" />
-                    <div>
-                      <h3 className="text-xl font-semibold mb-2">{service.title}</h3>
-                      <p className="text-gray-600">{service.description}</p>
-                    </div>
-                  </div>
-                ))}
+      {/* Emergency Contacts */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-center mb-12">Emergency Contacts</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {emergencyNumbers.map((contact) => (
+              <div key={contact.number} className="text-center p-6 bg-gray-50 rounded-lg">
+                <contact.icon className={`h-16 w-16 mx-auto mb-4 ${contact.color}`} />
+                <h3 className="text-xl font-semibold mb-2">{contact.label}</h3>
+                <p className={`text-3xl font-bold ${contact.color}`}>{contact.number}</p>
               </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>

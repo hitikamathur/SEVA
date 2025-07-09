@@ -111,7 +111,24 @@ export default function FirstAid() {
                         : 'bg-white text-gray-800 border'
                     }`}
                   >
-                    <p className="text-sm">{message.text}</p>
+                    {message.isUser ? (
+                      <p className="text-sm">{message.text}</p>
+                    ) : (
+                      <div className="text-sm">
+                        {message.text.split('\n').map((line, index) => (
+                          <div key={index} className="mb-2">
+                            {line.match(/^\d+\./) ? (
+                              <div className="flex items-start">
+                                <span className="font-semibold text-red-600 mr-2 flex-shrink-0">{line.match(/^\d+\./)?.[0]}</span>
+                                <span>{line.replace(/^\d+\.\s*/, '')}</span>
+                              </div>
+                            ) : line.trim() ? (
+                              <span>{line}</span>
+                            ) : null}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     <p className={`text-xs mt-1 ${
                       message.isUser ? 'text-blue-200' : 'text-gray-500'
                     }`}>

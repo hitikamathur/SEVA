@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { MapPin, Phone, Clock, Route, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { subscribeToAmbulances } from "@/lib/firebase";
+import { subscribeToAmbulances, initializeSampleAmbulances } from "@/lib/firebase";
 import { useLocation } from "wouter";
 
 // Leaflet imports
@@ -26,8 +26,12 @@ export default function Find() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Initialize sample ambulances if none exist
+    initializeSampleAmbulances();
+    
     // Subscribe to ambulances
     const unsubscribe = subscribeToAmbulances((ambulanceData) => {
+      console.log("Ambulance data received:", ambulanceData);
       setAmbulances(ambulanceData);
     });
 
@@ -125,6 +129,11 @@ export default function Find() {
     setLocation(`/track?driverId=${driverId}`);
   };
 
+  const bookAmbulance = (driverId: string) => {
+    // For now, just redirect to track page
+    setLocation(`/track?driverId=${driverId}`);
+  };
+
   const calculateETA = (ambulanceLat: number, ambulanceLng: number) => {
     if (!userLocation) return "Unknown";
     
@@ -165,47 +174,64 @@ export default function Find() {
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {Object.entries(ambulances).map(([driverId, ambulance]: [string, any]) => (
-          <Card key={driverId}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">{ambulance.driverName}</CardTitle>
-                <span className={`px-2 py-1 rounded-full text-sm ${
-                  ambulance.status === 'available' 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-red-100 text-red-800'
-                }`}>
-                  {ambulance.status}
-                </span>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 mb-4">
-                <p className="text-gray-600 flex items-center">
-                  <span className="mr-2">🚑</span>
-                  {ambulance.type} Ambulance
-                </p>
-                <p className="text-gray-600 flex items-center">
-                  <Phone className="mr-2 h-4 w-4" />
-                  {ambulance.phone}
-                </p>
-                <p className="text-gray-600 flex items-center">
-                  <Clock className="mr-2 h-4 w-4" />
-                  ETA: {calculateETA(ambulance.lat, ambulance.lng)}
-                </p>
-              </div>
-              
-              <Button
-                onClick={() => trackAmbulance(driverId)}
-                disabled={ambulance.status !== 'available'}
-                className="w-full bg-blue-600 hover:bg-blue-700"
-              >
-                <Route className="mr-2 h-4 w-4" />
-                Track Ambulance
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
+        {Object.keys(ambulances).length === 0 ? (
+          <div className="col-span-full text-center py-8">
+            <p className="text-gray-500">No ambulances found. Loading...</p>
+          </div>
+        ) : (
+          Object.entries(ambulances).map(([driverId, ambulance]: [string, any]) => (
+            <Card key={driverId}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">{ambulance.driverName || 'Unknown Driver'}</CardTitle>
+                  <span className={`px-2 py-1 rounded-full text-sm ${
+                    ambulance.status === 'available' 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {ambulance.status || 'Unknown'}
+                  </span>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 mb-4">
+                  <p className="text-gray-600 flex items-center">
+                    <span className="mr-2">🚑</span>
+                    {ambulance.type || 'Standard'} Ambulance
+                  </p>
+                  <p className="text-gray-600 flex items-center">
+                    <Phone className="mr-2 h-4 w-4" />
+                    {ambulance.phone || 'N/A'}
+                  </p>
+                  <p className="text-gray-600 flex items-center">
+                    <Clock className="mr-2 h-4 w-4" />
+                    ETA: {calculateETA(ambulance.lat, ambulance.lng)}
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Button
+                    onClick={() => trackAmbulance(driverId)}
+                    disabled={ambulance.status !== 'available'}
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Route className="mr-2 h-4 w-4" />
+                    Track Ambulance
+                  </Button>
+                  
+                  <Button
+                    onClick={() => bookAmbulance(driverId)}
+                    disabled={ambulance.status !== 'available'}
+                    className="w-full bg-green-600 hover:bg-green-700"
+                  >
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    Book Ambulance
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
     </div>
   );
