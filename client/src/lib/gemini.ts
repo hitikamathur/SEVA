@@ -121,3 +121,6 @@ export const generateFirstAidTips = async (symptom: string): Promise<string> => 
 • Provide basic first aid as appropriate for the situation`;
   }
 };
+
+// Export alias for compatibility
+export const getFirstAidResponse = generateFirstAidTips;

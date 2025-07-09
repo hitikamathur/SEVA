@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { getFirstAidResponse } from "@/lib/gemini";
+import { generateFirstAidTips } from "@/lib/gemini";
 
 interface ChatMessage {
   id: string;
@@ -41,7 +41,7 @@ export default function FirstAid() {
     setIsLoading(true);
 
     try {
-      const response = await getFirstAidResponse(symptomInput);
+      const response = await generateFirstAidTips(symptomInput);
       
       const botMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
