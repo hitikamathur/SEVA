@@ -160,12 +160,17 @@ export default function Track() {
                     <span className="text-sm font-medium">Status:</span>
                     <Badge className="bg-green-100 text-green-800">Confirmed</Badge>
                   </div>
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                    <div className="flex items-center">
-                      <Shield className="mr-2 h-4 w-4 text-yellow-600" />
-                      <span className="text-sm font-medium text-yellow-800">OTP: {bookingData.otp}</span>
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div className="flex items-center justify-center mb-2">
+                      <Shield className="mr-2 h-5 w-5 text-yellow-600" />
+                      <span className="text-lg font-bold text-yellow-800">OTP</span>
                     </div>
-                    <p className="text-xs text-yellow-700 mt-1">Share this OTP with the ambulance crew</p>
+                    <div className="text-center">
+                      <span className="text-2xl font-mono font-bold text-yellow-900 bg-yellow-100 px-3 py-1 rounded">
+                        {bookingData.otp}
+                      </span>
+                    </div>
+                    <p className="text-xs text-yellow-700 mt-2 text-center">Share this OTP with the ambulance crew for verification</p>
                   </div>
                 </div>
               </CardContent>

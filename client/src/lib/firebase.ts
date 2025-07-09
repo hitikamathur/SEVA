@@ -36,7 +36,8 @@ export const initializeSampleAmbulances = () => {
       lng: 77.2090,
       type: "government",
       status: "available",
-      lastUpdated: Date.now()
+      lastUpdated: Date.now(),
+      password: "driver123" // Added sample password
     },
     driver002: {
       driverName: "Priya Sharma",
@@ -46,7 +47,8 @@ export const initializeSampleAmbulances = () => {
       lng: 77.2100,
       type: "private",
       status: "available",
-      lastUpdated: Date.now()
+      lastUpdated: Date.now(),
+      password: "driver123" // Added sample password
     },
     driver003: {
       driverName: "Amit Singh",
@@ -56,7 +58,8 @@ export const initializeSampleAmbulances = () => {
       lng: 77.2200,
       type: "government",
       status: "busy",
-      lastUpdated: Date.now()
+      lastUpdated: Date.now(),
+      password: "driver123" // Added sample password
     },
     driver004: {
       driverName: "Sita Devi",
@@ -66,7 +69,8 @@ export const initializeSampleAmbulances = () => {
       lng: 77.2300,
       type: "private",
       status: "available",
-      lastUpdated: Date.now()
+      lastUpdated: Date.now(),
+      password: "driver123" // Added sample password
     }
   };
 

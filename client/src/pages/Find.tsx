@@ -160,7 +160,8 @@ export default function Find() {
       timestamp: new Date().toISOString()
     }));
     
-    // Redirect to tracking page
+    // Close modal and redirect to tracking page
+    setShowBookingModal(false);
     setLocation(`/track?driverId=${selectedDriver?.id}`);
   };
 

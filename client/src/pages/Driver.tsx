@@ -194,6 +194,16 @@ export default function Driver() {
             <CardTitle className="text-2xl text-center">Driver Login</CardTitle>
           </CardHeader>
           <CardContent>
+            <Alert className="mb-4">
+              <AlertDescription>
+                <strong>Sample Login Credentials:</strong><br />
+                Email: driver1@seva.com<br />
+                Password: driver123<br />
+                <br />
+                Email: driver2@seva.com<br />
+                Password: driver123
+              </AlertDescription>
+            </Alert>
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
                 <Label htmlFor="email">Email</Label>

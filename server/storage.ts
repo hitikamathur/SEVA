@@ -188,7 +188,7 @@ export class MemStorage implements IStorage {
         lat: 28.5355,
         lng: 77.2731,
         rating: 4.5,
-        specialties: ["Cardiology", "Cardiac Surgery", "Emergency"],
+        specialties: ["Cardiology", "Emergency", "ICU"],
         type: "private",
       },
       {
@@ -352,7 +352,7 @@ export class MemStorage implements IStorage {
 
   async createOrUpdateAmbulance(ambulanceData: InsertAmbulance): Promise<Ambulance> {
     const existing = await this.getAmbulanceByDriverId(ambulanceData.driverId);
-    
+
     if (existing) {
       const updated = { ...existing, ...ambulanceData, lastUpdated: new Date() };
       this.ambulances.set(existing.id, updated);
@@ -434,7 +434,7 @@ export class MemStorage implements IStorage {
 
   async searchHospitalsBySpecialty(specialty: string): Promise<Hospital[]> {
     if (!specialty) return this.getAllHospitals();
-    
+
     return Array.from(this.hospitals.values()).filter(hospital =>
       hospital.specialties.some(s => 
         s.toLowerCase().includes(specialty.toLowerCase())

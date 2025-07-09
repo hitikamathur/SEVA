@@ -42,7 +42,7 @@ export default function BookingModal({
 
     try {
       let userLocation = { lat: 28.6139, lng: 77.2090 }; // Default to Delhi
-      
+
       // Try to get current location
       try {
         const location = await new Promise<GeolocationPosition>((resolve, reject) => {
