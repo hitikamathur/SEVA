@@ -1,77 +1,123 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY;
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY;
 
-if (!apiKey) {
-  console.error("Gemini API key not found. Please set VITE_GEMINI_API_KEY in your environment variables.");
+if (!API_KEY) {
+  console.error('Gemini API key not found. Please set VITE_GEMINI_API_KEY in your environment variables.');
 }
 
-const genAI = new GoogleGenerativeAI(apiKey || "");
+const genAI = API_KEY ? new GoogleGenerativeAI(API_KEY) : null;
 
-export async function getFirstAidResponse(symptom: string): Promise<string> {
+// Fallback first aid tips for common symptoms
+const fallbackTips: Record<string, string> = {
+  'chest pain': `• Call emergency services immediately (108)
+• Have the person sit down and rest
+• Loosen any tight clothing
+• If prescribed, help them take nitroglycerin
+• Stay with them until help arrives
+• Be prepared to perform CPR if needed`,
+
+  'difficulty breathing': `• Call emergency services immediately (108)
+• Help the person sit upright
+• Loosen tight clothing around neck/chest
+• Encourage slow, deep breaths
+• If they have an inhaler, help them use it
+• Stay calm and reassure them`,
+
+  'unconsciousness': `• Call emergency services immediately (108)
+• Check for responsiveness and breathing
+• Place in recovery position if breathing
+• Clear airway of any obstructions
+• Monitor breathing and pulse
+• Be prepared to perform CPR if needed`,
+
+  'severe bleeding': `• Call emergency services immediately (108)
+• Apply direct pressure with clean cloth
+• Elevate the injured area if possible
+• Don't remove embedded objects
+• Apply pressure to pressure points if needed
+• Keep the person warm and lying down`,
+
+  'heart attack': `• Call emergency services immediately (108)
+• Help person sit down and rest
+• Loosen tight clothing
+• Give aspirin if not allergic (chew, don't swallow)
+• Stay with them until help arrives
+• Be prepared to perform CPR if needed`,
+
+  'stroke': `• Call emergency services immediately (108)
+• Note time symptoms started
+• Keep person calm and still
+• Don't give food or water
+• Loosen tight clothing
+• Monitor breathing and consciousness`,
+
+  'seizure': `• Call emergency services if seizure lasts >5 minutes
+• Clear area of dangerous objects
+• Place something soft under their head
+• Turn on side to prevent choking
+• Don't restrain or put anything in mouth
+• Stay with them until they recover`,
+
+  'burns': `• Cool the burn with cold water for 10-20 minutes
+• Remove jewelry/clothing before swelling
+• Cover with sterile, non-adhesive bandage
+• Don't use ice, butter, or home remedies
+• For severe burns, call emergency services
+• Keep person warm and hydrated`,
+
+  'fracture': `• Don't move the person unless in danger
+• Immobilize the injured area
+• Apply ice pack wrapped in cloth
+• Control any bleeding with direct pressure
+• Keep person comfortable and warm
+• Call emergency services for severe fractures`,
+
+  'poisoning': `• Call Poison Control immediately
+• If conscious, give small sips of water
+• Don't induce vomiting unless instructed
+• Keep poison container for reference
+• Monitor breathing and consciousness
+• Be prepared to perform CPR if needed`
+};
+
+export const generateFirstAidTips = async (symptom: string): Promise<string> => {
   try {
-    if (!apiKey) {
-      throw new Error("Gemini API key not configured");
+    if (!genAI) {
+      // Use fallback tips if API key is not available
+      const normalizedSymptom = symptom.toLowerCase();
+      const matchingTip = Object.keys(fallbackTips).find(key => 
+        normalizedSymptom.includes(key) || key.includes(normalizedSymptom)
+      );
+
+      if (matchingTip) {
+        return fallbackTips[matchingTip];
+      }
+
+      return `• Call emergency services immediately (108)
+• Keep the person calm and comfortable
+• Monitor vital signs (breathing, pulse)
+• Don't give food or water unless instructed
+• Stay with them until help arrives
+• Provide basic first aid as appropriate for the situation`;
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
-    const prompt = `You are an emergency medical first aid assistant. A person is experiencing: "${symptom}". 
-
-    Provide specific, immediate first aid instructions for this exact condition. Format your response as exactly 5-6 numbered steps with brief, actionable instructions.
-
-    Requirements:
-    - Each step must be specific to the symptom "${symptom}"
-    - Keep each step under 25 words
-    - Focus on immediate, safe actions for untrained individuals
-    - Include when to call 108 (India emergency number)
-    - Make it specific to the condition "${symptom}"
-    - Include what NOT to do if important
-
-    Format:
-    1. [Specific action for this symptom]
-    2. [Specific action for this symptom]
-    3. [Specific action for this symptom]
-    4. [Specific action for this symptom]
-    5. [Specific action for this symptom]
-    6. Call 108 immediately if [specific warning signs for this condition]`;
+    const prompt = `Provide immediate first aid tips for ${symptom}. Keep the response concise, practical, and emergency-focused. Include 3-5 key steps that someone can follow immediately while waiting for medical help. Format as bullet points.`;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    const responseText = response.text();
-    
-    // Ensure we have a response and it's relevant
-    if (responseText && responseText.length > 50) {
-      return responseText;
-    }
-    
-    // Fallback with symptom-specific default
-    return getSymptomSpecificFallback(symptom);
+    return response.text();
   } catch (error) {
-    console.error("Error getting first aid response:", error);
-    return getSymptomSpecificFallback(symptom);
-  }
-}
+    console.error('Error generating first aid tips:', error);
 
-function getSymptomSpecificFallback(symptom: string): string {
-  const lowerSymptom = symptom.toLowerCase();
-  
-  if (lowerSymptom.includes("chest pain") || lowerSymptom.includes("heart")) {
-    return `1. Call 108 immediately for suspected heart attack\n2. Have the person sit down and rest\n3. Loosen any tight clothing\n4. Give aspirin if not allergic and conscious\n5. Monitor breathing and pulse\n6. Be prepared to perform CPR if they become unconscious`;
+    // Fallback to basic tips if API fails
+    return `• Call emergency services immediately (108)
+• Keep the person calm and comfortable
+• Monitor vital signs (breathing, pulse)
+• Don't give food or water unless instructed
+• Stay with them until help arrives
+• Provide basic first aid as appropriate for the situation`;
   }
-  
-  if (lowerSymptom.includes("choking")) {
-    return `1. Ask "Are you choking?" If they can't speak, act immediately\n2. Stand behind them, place hands below ribcage\n3. Give 5 sharp back blows between shoulder blades\n4. If unsuccessful, perform 5 abdominal thrusts (Heimlich)\n5. Alternate back blows and abdominal thrusts\n6. Call 108 if object doesn't dislodge after 3 cycles`;
-  }
-  
-  if (lowerSymptom.includes("bleeding") || lowerSymptom.includes("cut")) {
-    return `1. Apply direct pressure to wound with clean cloth\n2. Elevate injured area above heart level if possible\n3. Do not remove embedded objects\n4. Apply additional bandages if blood soaks through\n5. Check for signs of shock (pale, weak pulse)\n6. Call 108 for severe bleeding or signs of shock`;
-  }
-  
-  if (lowerSymptom.includes("burn")) {
-    return `1. Remove person from heat source immediately\n2. Cool burn with cool (not ice) water for 10-20 minutes\n3. Remove jewelry/clothing before swelling starts\n4. Cover with sterile, non-stick bandage\n5. Do not apply ice, butter, or ointments\n6. Call 108 for burns larger than palm size or on face/hands`;
-  }
-  
-  // Generic fallback
-  return `1. Call 108 immediately for ${lowerSymptom} emergency\n2. Keep the person calm and comfortable\n3. Do not leave the person alone\n4. Monitor breathing and consciousness levels\n5. Be ready to provide CPR if trained and needed\n6. Wait for professional medical help to arrive`;
-}
+};

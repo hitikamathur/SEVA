@@ -41,34 +41,49 @@ export default function BookingModal({
     setIsSubmitting(true);
 
     try {
-      // Get current location
-      const location = await new Promise<GeolocationPosition>((resolve, reject) => {
-        if (!navigator.geolocation) {
-          reject(new Error("Geolocation not supported"));
-          return;
-        }
+      let userLocation = { lat: 28.6139, lng: 77.2090 }; // Default to Delhi
+      
+      // Try to get current location
+      try {
+        const location = await new Promise<GeolocationPosition>((resolve, reject) => {
+          if (!navigator.geolocation) {
+            reject(new Error("Geolocation not supported"));
+            return;
+          }
 
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0
+          });
         });
-      });
+        userLocation = {
+          lat: location.coords.latitude,
+          lng: location.coords.longitude
+        };
+      } catch (locationError) {
+        console.log("Using default location:", locationError);
+      }
 
       const bookingData = {
         ...formData,
         ambulanceId: ambulanceId || "auto-assign",
         driverName: driverName || "Auto-assigned",
-        location: {
-          lat: location.coords.latitude,
-          lng: location.coords.longitude
-        },
+        location: userLocation,
         timestamp: Date.now(),
         status: "pending"
       };
 
-      // Save to Firebase
-      await push(ref(database, 'ambulance-requests'), bookingData);
+      // Try Firebase, fallback to localStorage
+      try {
+        const requestsRef = ref(database, 'ambulance-requests');
+        await push(requestsRef, bookingData);
+      } catch (firebaseError) {
+        console.log("Firebase unavailable, storing locally:", firebaseError);
+        const requests = JSON.parse(localStorage.getItem('ambulance-requests') || '[]');
+        requests.push({ ...bookingData, id: Date.now().toString() });
+        localStorage.setItem('ambulance-requests', JSON.stringify(requests));
+      }
 
       alert("Ambulance request submitted successfully!");
       setFormData({

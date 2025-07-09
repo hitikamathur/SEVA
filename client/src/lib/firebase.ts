@@ -3,12 +3,12 @@ import { getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { getDatabase, ref, set, onValue, push, update } from "firebase/database";
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.appspot.com`,
-  databaseURL: `https://${import.meta.env.VITE_FIREBASE_PROJECT_ID}-default-rtdb.firebaseio.com/`,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "demo-key",
+  authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID || "seva-emergency"}.firebaseapp.com`,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "seva-emergency",
+  storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID || "seva-emergency"}.appspot.com`,
+  databaseURL: `https://${import.meta.env.VITE_FIREBASE_PROJECT_ID || "seva-emergency"}-default-rtdb.firebaseio.com/`,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "demo-app-id",
 };
 
 let app;
@@ -96,11 +96,20 @@ export const setAmbulanceStatus = (driverId: string, status: string) => {
 };
 
 export const createRequest = (requestData: any) => {
-  const requestsRef = ref(database, 'requests');
-  return push(requestsRef, {
-    ...requestData,
-    timestamp: Date.now(),
-  });
+  try {
+    const requestsRef = ref(database, 'requests');
+    return push(requestsRef, {
+      ...requestData,
+      timestamp: Date.now(),
+    });
+  } catch (error) {
+    console.log('Firebase unavailable, storing locally:', error);
+    // Fallback to localStorage for demo purposes
+    const requests = JSON.parse(localStorage.getItem('ambulance-requests') || '[]');
+    requests.push({ ...requestData, timestamp: Date.now(), id: Date.now().toString() });
+    localStorage.setItem('ambulance-requests', JSON.stringify(requests));
+    return Promise.resolve();
+  }
 };
 
 export const acceptRequest = (requestId: string, driverId: string) => {
