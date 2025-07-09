@@ -93,6 +93,9 @@ export default function BookingModal({
         address: ""
       });
       onClose();
+
+      // Redirect to tracking page
+      window.location.href = '/track';
     } catch (error) {
       console.error("Error submitting booking:", error);
       alert("Failed to submit booking. Please try again.");

@@ -17,15 +17,16 @@ import "leaflet/dist/leaflet.css";
 export default function Driver() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [loginData, setLoginData] = useState({ email: "", password: "" });
+  const [loginData, setLoginData] = useState({ email: "", password: "", otp: "" });
   const [isLoading, setIsLoading] = useState(false);
   const [driverLocation, setDriverLocation] = useState({ lat: 28.6139, lng: 77.2090 });
   const [requests, setRequests] = useState<any>({});
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [showOtpField, setShowOtpField] = useState(false);
   const { toast } = useToast();
-  
+
   const mapRef = useRef<L.Map | null>(null);
-  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const driverMarkerRef = useRef<L.Marker | null>(null);
 
   useEffect(() => {
@@ -54,7 +55,7 @@ export default function Driver() {
     if (!mapContainerRef.current) return;
 
     mapRef.current = L.map(mapContainerRef.current).setView([driverLocation.lat, driverLocation.lng], 15);
-    
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
     }).addTo(mapRef.current);
@@ -88,13 +89,13 @@ export default function Driver() {
       // Simulate GPS movement
       const newLat = driverLocation.lat + (Math.random() - 0.5) * 0.001;
       const newLng = driverLocation.lng + (Math.random() - 0.5) * 0.001;
-      
+
       setDriverLocation({ lat: newLat, lng: newLng });
-      
+
       if (currentUser) {
         updateAmbulanceLocation(currentUser.uid, newLat, newLng);
       }
-      
+
       updateDriverMarker();
     }, 2000);
 
@@ -116,20 +117,41 @@ export default function Driver() {
     e.preventDefault();
     setIsLoading(true);
 
-    try {
-      await loginDriver(loginData.email, loginData.password);
+    if (!showOtpField) {
+      // Send OTP
+      setShowOtpField(true);
       toast({
-        title: "Login Successful",
-        description: "Welcome back, driver!",
+        title: "OTP Sent",
+        description: "Please check your email for the OTP.",
       });
-    } catch (error: any) {
-      toast({
-        title: "Login Failed",
-        description: error.message || "Please check your credentials",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      setIsLoading(false); //Move here to avoid long loading time
+    } else {
+      // Verify OTP
+      if (loginData.otp === "123456") {
+        // Demo OTP verification
+        try {
+          await loginDriver(loginData.email, loginData.password);
+          toast({
+            title: "Login Successful",
+            description: "Welcome back, driver!",
+          });
+        } catch (error: any) {
+          toast({
+            title: "Login Failed",
+            description: error.message || "Please check your credentials",
+            variant: "destructive",
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        toast({
+          title: "OTP Verification Failed",
+          description: "Invalid OTP. Please try again.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+      }
     }
   };
 
@@ -139,7 +161,7 @@ export default function Driver() {
         await setAmbulanceStatus(currentUser.uid, 'offline');
       }
       await logoutDriver();
-      setLoginData({ email: "", password: "" });
+      setLoginData({ email: "", password: "", otp: "" });
       toast({
         title: "Logged Out",
         description: "You have been logged out successfully",
@@ -179,7 +201,7 @@ export default function Driver() {
       delete updated[requestId];
       return updated;
     });
-    
+
     toast({
       title: "Request Declined",
       description: "The request has been declined.",
@@ -216,7 +238,7 @@ export default function Driver() {
                   required
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
@@ -228,18 +250,36 @@ export default function Driver() {
                     onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                     required
                   />
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     className="absolute right-3 top-1/2 transform -translate-y-1/2"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
+                  </Button>
                 </div>
               </div>
-              
+
+              {showOtpField && (
+                <div>
+                  <Label htmlFor="otp">OTP</Label>
+                  <Input
+                    id="otp"
+                    type="text"
+                    placeholder="Enter 6-digit OTP"
+                    value={loginData.otp}
+                    onChange={(e) => setLoginData({ ...loginData, otp: e.target.value })}
+                    maxLength={6}
+                    required
+                  />
+                  <p className="text-sm text-gray-600 mt-1">Demo OTP: 123456</p>
+                </div>
+              )}
+
               <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
-                {isLoading ? "Logging in..." : "Login"}
+                {isLoading ? "Processing..." : showOtpField ? "Verify OTP" : "Send OTP"}
               </Button>
             </form>
           </CardContent>
@@ -284,8 +324,8 @@ export default function Driver() {
               <p className="text-yellow-800">{Object.keys(requests).length}</p>
             </div>
           </div>
-          
-          <div 
+
+          <div
             ref={mapContainerRef}
             className="h-96 rounded-lg overflow-hidden border"
           />

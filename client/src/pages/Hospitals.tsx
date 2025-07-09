@@ -68,7 +68,7 @@ const sampleHospitals: Hospital[] = [
     address: "Saket, New Delhi",
     phone: "+91 11 2651 5050",
     type: "private",
-    specialty: ["Oncology", "Cardiac Surgery", "Nephrology"],
+    specialty: ["Oncology", "Cardiology", "Nephrology"],
     emergency: true,
     rating: 4.4,
     distance: 4.7

@@ -25,52 +25,56 @@ try {
 export const auth = getAuth(app);
 export const database = getDatabase(app);
 
+// Sample driver credentials for demo
+const sampleDrivers = {
+  "driver1@seva.com": { password: "driver123", uid: "driver001", name: "Rajesh Kumar" },
+  "driver2@seva.com": { password: "driver123", uid: "driver002", name: "Priya Sharma" },
+  "driver3@seva.com": { password: "driver123", uid: "driver003", name: "Amit Singh" },
+  "driver4@seva.com": { password: "driver123", uid: "driver004", name: "Sita Devi" }
+};
+
 // Initialize sample ambulance data
 export const initializeSampleAmbulances = () => {
   const sampleAmbulances = {
     driver001: {
       driverName: "Rajesh Kumar",
-      driverEmail: "rajesh@example.com",
+      driverEmail: "driver1@seva.com",
       phone: "+91 9876543210",
       lat: 28.6139,
       lng: 77.2090,
       type: "government",
       status: "available",
-      lastUpdated: Date.now(),
-      password: "driver123" // Added sample password
+      lastUpdated: Date.now()
     },
     driver002: {
       driverName: "Priya Sharma",
-      driverEmail: "priya@example.com",
+      driverEmail: "driver2@seva.com",
       phone: "+91 8765432109",
       lat: 28.6200,
       lng: 77.2100,
       type: "private",
       status: "available",
-      lastUpdated: Date.now(),
-      password: "driver123" // Added sample password
+      lastUpdated: Date.now()
     },
     driver003: {
       driverName: "Amit Singh",
-      driverEmail: "amit@example.com",
+      driverEmail: "driver3@seva.com",
       phone: "+91 7654321098",
       lat: 28.6300,
       lng: 77.2200,
       type: "government",
       status: "busy",
-      lastUpdated: Date.now(),
-      password: "driver123" // Added sample password
+      lastUpdated: Date.now()
     },
     driver004: {
       driverName: "Sita Devi",
-      driverEmail: "sita@example.com",
+      driverEmail: "driver4@seva.com",
       phone: "+91 6543210987",
       lat: 28.6400,
       lng: 77.2300,
       type: "private",
       status: "available",
-      lastUpdated: Date.now(),
-      password: "driver123" // Added sample password
+      lastUpdated: Date.now()
     }
   };
 
@@ -79,13 +83,35 @@ export const initializeSampleAmbulances = () => {
   set(ambulancesRef, sampleAmbulances).catch(console.error);
 };
 
-// Auth functions
-export const loginDriver = async (email: string, password: string) => {
-  return await signInWithEmailAndPassword(auth, email, password);
+// Demo auth functions (replacing Firebase auth for demo)
+export const loginDriver = async (email: string, password: string, otp?: string) => {
+  // Check demo credentials
+  const driver = sampleDrivers[email as keyof typeof sampleDrivers];
+  if (!driver || driver.password !== password) {
+    throw new Error("Invalid credentials");
+  }
+  
+  // For demo: simulate OTP verification
+  if (otp && otp !== "123456") {
+    throw new Error("Invalid OTP");
+  }
+
+  // Create mock user object
+  const mockUser = {
+    uid: driver.uid,
+    email: email,
+    displayName: driver.name
+  };
+
+  // Store in localStorage for demo
+  localStorage.setItem('currentDriver', JSON.stringify(mockUser));
+  
+  return { user: mockUser };
 };
 
 export const logoutDriver = async () => {
-  return await signOut(auth);
+  localStorage.removeItem('currentDriver');
+  return Promise.resolve();
 };
 
 // Database functions
@@ -144,3 +170,8 @@ export const subscribeToAmbulanceLocation = (driverId: string, callback: (locati
     callback(data);
   });
 };
+
+// Initialize sample data on import
+setTimeout(() => {
+  initializeSampleAmbulances();
+}, 1000);
