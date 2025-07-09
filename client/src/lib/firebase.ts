@@ -1,4 +1,4 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { getDatabase, ref, set, onValue, push, update } from "firebase/database";
 
@@ -16,7 +16,7 @@ try {
   app = initializeApp(firebaseConfig);
 } catch (error: any) {
   if (error.code === 'app/duplicate-app') {
-    app = initializeApp(firebaseConfig, 'seva-app');
+    app = getApp('seva-app') || initializeApp(firebaseConfig, 'seva-app');
   } else {
     throw error;
   }

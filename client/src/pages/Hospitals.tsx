@@ -231,9 +231,24 @@ export default function Hospitals() {
       return;
     }
 
+    // Map filter values to specialty keywords
+    const specialtyMap: { [key: string]: string[] } = {
+      "cardiac": ["cardiology", "cardiac"],
+      "trauma": ["trauma", "emergency"],
+      "neuro": ["neurology", "neurological"],
+      "pediatric": ["pediatric", "children"],
+      "orthopedic": ["orthopedic", "orthopedics"],
+      "oncology": ["oncology", "cancer"],
+      "emergency": ["emergency", "trauma", "cardiology", "neurology"]
+    };
+
+    const searchTerms = specialtyMap[selectedEmergency] || [selectedEmergency];
+
     const filtered = hospitals.filter(hospital => 
       hospital.specialties.some(specialty => 
-        specialty.toLowerCase().includes(selectedEmergency.toLowerCase())
+        searchTerms.some(term => 
+          specialty.toLowerCase().includes(term.toLowerCase())
+        )
       )
     );
     setFilteredHospitals(filtered);

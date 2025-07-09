@@ -45,6 +45,38 @@ export default function BookingModal({ isOpen, onClose, onBooking, driverName, d
   const handleSubmit = async (data: BookingFormData) => {
     setIsSubmitting(true);
     try {
+      // Create the booking request
+      const bookingData = {
+        patientName: data.name,
+        patientPhone: data.phone,
+        emergency: data.emergencyType,
+        location: data.location,
+        description: data.notes || "",
+        driverId: driverName, // Use the driver ID from props
+      };
+
+      // Send to backend
+      const response = await fetch('/api/requests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(bookingData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create booking');
+      }
+
+      const result = await response.json();
+      
+      // Store booking data for tracking
+      localStorage.setItem('currentBooking', JSON.stringify({
+        ...result,
+        driverName,
+        driverPhone
+      }));
+
       await onBooking(data);
       form.reset();
       onClose();
