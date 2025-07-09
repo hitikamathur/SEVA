@@ -11,15 +11,19 @@ import { ref, push } from "firebase/database";
 interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onBooking: (bookingData: any) => void;
+  driverName: string;
+  driverPhone: string;
   ambulanceId?: string;
-  driverName?: string;
 }
 
 export default function BookingModal({ 
   isOpen, 
   onClose, 
-  ambulanceId, 
-  driverName 
+  onBooking, 
+  driverName, 
+  driverPhone,
+  ambulanceId 
 }: BookingModalProps) {
   const [formData, setFormData] = useState({
     patientName: "",
@@ -41,38 +45,41 @@ export default function BookingModal({
     setIsSubmitting(true);
 
     try {
-      let userLocation = { lat: 28.6139, lng: 77.2090 }; // Default to Delhi
-
-      // Try to get current location
-      try {
-        const location = await new Promise<GeolocationPosition>((resolve, reject) => {
-          if (!navigator.geolocation) {
-            reject(new Error("Geolocation not supported"));
-            return;
-          }
-
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 0
+      // Get user location
+      let userLocation = null;
+      if (navigator.geolocation) {
+        try {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject);
           });
-        });
-        userLocation = {
-          lat: location.coords.latitude,
-          lng: location.coords.longitude
-        };
-      } catch (locationError) {
-        console.log("Using default location:", locationError);
+          userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+        } catch (error) {
+          console.log("Could not get location:", error);
+        }
       }
 
+      // Generate OTP
+      const otp = Math.floor(100000 + Math.random() * 900000);
+
       const bookingData = {
-        ...formData,
+        name: formData.patientName,
+        phone: formData.phone,
+        emergencyType: formData.emergency,
+        address: formData.address,
         ambulanceId: ambulanceId || "auto-assign",
         driverName: driverName || "Auto-assigned",
+        driverPhone: driverPhone || "N/A",
         location: userLocation,
         timestamp: Date.now(),
-        status: "pending"
+        status: "confirmed",
+        otp: otp
       };
+
+      // Store booking data in localStorage for tracking page
+      localStorage.setItem('currentBooking', JSON.stringify(bookingData));
 
       // Try Firebase, fallback to localStorage
       try {
@@ -85,6 +92,9 @@ export default function BookingModal({
         localStorage.setItem('ambulance-requests', JSON.stringify(requests));
       }
 
+      // Call the parent callback with booking data
+      onBooking(bookingData);
+
       alert("Ambulance request submitted successfully!");
       setFormData({
         patientName: "",
@@ -93,9 +103,6 @@ export default function BookingModal({
         address: ""
       });
       onClose();
-
-      // Redirect to tracking page
-      window.location.href = '/track';
     } catch (error) {
       console.error("Error submitting booking:", error);
       alert("Failed to submit booking. Please try again.");
