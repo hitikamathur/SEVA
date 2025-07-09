@@ -84,16 +84,11 @@ export const initializeSampleAmbulances = () => {
 };
 
 // Demo auth functions (replacing Firebase auth for demo)
-export const loginDriver = async (email: string, password: string, otp?: string) => {
+export const loginDriver = async (email: string, password: string) => {
   // Check demo credentials
   const driver = sampleDrivers[email as keyof typeof sampleDrivers];
   if (!driver || driver.password !== password) {
     throw new Error("Invalid credentials");
-  }
-  
-  // For demo: simulate OTP verification
-  if (otp && otp !== "123456") {
-    throw new Error("Invalid OTP");
   }
 
   // Create mock user object
@@ -105,8 +100,8 @@ export const loginDriver = async (email: string, password: string, otp?: string)
 
   // Store in localStorage for demo
   localStorage.setItem('currentDriver', JSON.stringify(mockUser));
-  
-  return { user: mockUser };
+
+  return mockUser;
 };
 
 export const logoutDriver = async () => {

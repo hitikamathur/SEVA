@@ -117,41 +117,22 @@ export default function Driver() {
     e.preventDefault();
     setIsLoading(true);
 
-    if (!showOtpField) {
-      // Send OTP
-      setShowOtpField(true);
+    try {
+      const user = await loginDriver(loginData.email, loginData.password);
+      setCurrentUser(user);
+      setIsLoggedIn(true);
       toast({
-        title: "OTP Sent",
-        description: "Please check your email for the OTP.",
+        title: "Login Successful",
+        description: "Welcome back, driver!",
       });
-      setIsLoading(false); //Move here to avoid long loading time
-    } else {
-      // Verify OTP
-      if (loginData.otp === "123456") {
-        // Demo OTP verification
-        try {
-          await loginDriver(loginData.email, loginData.password);
-          toast({
-            title: "Login Successful",
-            description: "Welcome back, driver!",
-          });
-        } catch (error: any) {
-          toast({
-            title: "Login Failed",
-            description: error.message || "Please check your credentials",
-            variant: "destructive",
-          });
-        } finally {
-          setIsLoading(false);
-        }
-      } else {
-        toast({
-          title: "OTP Verification Failed",
-          description: "Invalid OTP. Please try again.",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-      }
+    } catch (error: any) {
+      toast({
+        title: "Login Failed",
+        description: error.message || "Please check your credentials",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -161,7 +142,9 @@ export default function Driver() {
         await setAmbulanceStatus(currentUser.uid, 'offline');
       }
       await logoutDriver();
-      setLoginData({ email: "", password: "", otp: "" });
+      setLoginData({ email: "", password: "" });
+      setIsLoggedIn(false);
+      setCurrentUser(null);
       toast({
         title: "Logged Out",
         description: "You have been logged out successfully",
@@ -262,24 +245,8 @@ export default function Driver() {
                 </div>
               </div>
 
-              {showOtpField && (
-                <div>
-                  <Label htmlFor="otp">OTP</Label>
-                  <Input
-                    id="otp"
-                    type="text"
-                    placeholder="Enter 6-digit OTP"
-                    value={loginData.otp}
-                    onChange={(e) => setLoginData({ ...loginData, otp: e.target.value })}
-                    maxLength={6}
-                    required
-                  />
-                  <p className="text-sm text-gray-600 mt-1">Demo OTP: 123456</p>
-                </div>
-              )}
-
               <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
-                {isLoading ? "Processing..." : showOtpField ? "Verify OTP" : "Send OTP"}
+                {isLoading ? "Processing..." : "Login"}
               </Button>
             </form>
           </CardContent>
