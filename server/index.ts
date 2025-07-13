@@ -1,6 +1,10 @@
 import express, { type Request, Response, NextFunction } from "express";
+import dotenv from "dotenv";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+
+// Load environment variables from .env file
+dotenv.config();
 
 const app = express();
 app.use(express.json());
@@ -37,34 +41,34 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  const server = await registerRoutes(app);
+  await registerRoutes(app);
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-    throw err;
-  });
-
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
+  // Setup Vite in development
   if (app.get("env") === "development") {
-    await setupVite(app, server);
+    await setupVite(app);
   } else {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
-  server.listen({
+  // Use PORT from environment or fallback to 5000
+  const port = Number(process.env.PORT) || 5000;
+
+  // ✅ FIXED: host is now localhost to avoid ENOTSUP on Windows
+  app.listen(
     port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
+    "localhost",
+    () => {
+      log(`🚑 SEVA server is running on http://localhost:${port}`);
+    }
+  );
 })();
+
+// Error-handling middleware should be registered after all other middleware/routes
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  const status = err.status || err.statusCode || 500;
+  const message = err.message || "Internal Server Error";
+
+  res.status(status).json({ message });
+  // Optionally log the error, but don't throw it here to avoid unhandled exceptions
+  log(`Error: ${message}`);
+});

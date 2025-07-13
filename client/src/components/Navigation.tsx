@@ -27,7 +27,7 @@ export default function Navigation() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
-              <Heart className="h-8 w-8 text-red-600 mr-2" />
+              <img src="/seva.png" alt="SEVA Logo" className="h-12 w-13 mr-0.5 rounded-full" />
               <span className="text-2xl font-bold text-gray-900">SEVA</span>
             </Link>
           </div>

@@ -168,12 +168,21 @@ export default function Find() {
   const calculateETA = (ambulanceLat: number, ambulanceLng: number) => {
     if (!userLocation) return "Unknown";
     
-    const distance = Math.sqrt(
-      Math.pow(ambulanceLat - userLocation.lat, 2) + 
-      Math.pow(ambulanceLng - userLocation.lng, 2)
-    );
+    // Haversine formula to calculate distance between two points
+    const R = 6371; // Earth's radius in kilometers
+    const dLat = (ambulanceLat - userLocation.lat) * Math.PI / 180;
+    const dLng = (ambulanceLng - userLocation.lng) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(userLocation.lat * Math.PI / 180) * Math.cos(ambulanceLat * Math.PI / 180) * 
+      Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c; // Distance in kilometers
     
-    const eta = Math.round(distance * 100000); // Rough ETA calculation
+    // Assume average speed of 40 km/h for ambulance in city traffic
+    const averageSpeed = 40; // km/h
+    const eta = Math.round((distance / averageSpeed) * 60); // Convert to minutes
+    
     return `${eta} min`;
   };
 

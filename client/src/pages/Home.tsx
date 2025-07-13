@@ -56,7 +56,7 @@ export default function Home() {
               SEVA Emergency Platform
             </h1>
             <p className="text-xl md:text-2xl mb-8 opacity-90">
-              Fast, Reliable Ambulance Services Across India
+              Your Emergency, Our Priority
             </p>
             <Button
               onClick={() => setShowRequestModal(true)}
