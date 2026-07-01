@@ -1,0 +1,78 @@
+import express, { type Request, Response, NextFunction } from "express";
+import dotenv from "dotenv";
+import { registerRoutes } from "./routes";
+import { setupVite, serveStatic, log } from "./vite";
+import { connectDB } from "./db";
+
+// Load environment variables from .env file
+dotenv.config();
+
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+app.use((req, res, next) => {
+  const start = Date.now();
+  const path = req.path;
+  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+
+  const originalResJson = res.json;
+  res.json = function (bodyJson, ...args) {
+    capturedJsonResponse = bodyJson;
+    return originalResJson.apply(res, [bodyJson, ...args]);
+  };
+
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    if (path.startsWith("/api") && !path.startsWith("/api/sse")) {
+      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+      if (capturedJsonResponse) {
+        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+      }
+
+      if (logLine.length > 80) {
+        logLine = logLine.slice(0, 79) + "…";
+      }
+
+      log(logLine);
+    }
+  });
+
+  next();
+});
+
+(async () => {
+  // Connect to MongoDB
+  await connectDB();
+
+  const server = await registerRoutes(app);
+
+  // Setup Vite in development
+  if (app.get("env") === "development") {
+    await setupVite(app, server);
+  } else {
+    serveStatic(app);
+  }
+
+  // Use PORT from environment or fallback to 5000
+  const port = Number(process.env.PORT) || 5000;
+
+  // ✅ FIXED: host is now localhost to avoid ENOTSUP on Windows
+  server.listen(
+    port,
+    "localhost",
+    () => {
+      log(`🚑 SEVA server is running on http://localhost:${port}`);
+    }
+  );
+})();
+
+// Error-handling middleware should be registered after all other middleware/routes
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  const status = err.status || err.statusCode || 500;
+  const message = err.message || "Internal Server Error";
+
+  res.status(status).json({ message });
+  // Optionally log the error, but don't throw it here to avoid unhandled exceptions
+  log(`Error: ${message}`);
+});

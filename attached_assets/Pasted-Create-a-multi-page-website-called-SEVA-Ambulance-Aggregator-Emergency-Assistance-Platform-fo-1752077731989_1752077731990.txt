@@ -1,0 +1,126 @@
+Create a multi-page website called **"SEVA – Ambulance Aggregator & Emergency Assistance Platform for India"** using **HTML, TailwindCSS, and JavaScript**.
+
+Replace Google Maps with **Leaflet + OpenStreetMap**.  
+Use **Firebase** for **driver login**, real-time ambulance location tracking, and request management.
+
+---
+
+### 🎯 Key Features:
+
+1. **No patient login required.**
+   - On ambulance request, ask for:
+     - Name
+     - Mobile Number
+     - Emergency description (e.g. "Chest pain", "Accident")
+
+2. **Driver login panel only.**
+   - Drivers can log in via Firebase Authentication
+   - Once logged in:
+     - Share simulated GPS location (use Firebase DB)
+     - Button to accept request
+
+3. **Map integration:**
+   - Use Leaflet.js with OpenStreetMap tiles
+   - Track ambulance in real-time via Firebase on `track.html`
+   - Find nearby ambulances using patient’s geolocation
+
+---
+
+### 📄 Pages to Build:
+
+#### 1. `index.html` – Home Page
+- SEVA logo and navigation (sticky header)
+- Prominent **"Request Ambulance"** button
+- Emergency numbers (police, fire, ambulance)
+- Grid links to:
+  - Find Nearby Ambulance
+  - First Aid Tips
+  - Track Ambulance
+  - Hospital Recommendation
+
+#### 2. `find.html` – Find Nearby Ambulance
+- Detect user location using `navigator.geolocation`
+- Show ambulances from Firebase (under `/ambulances`)
+- Cards show:
+  - Driver Name (hardcoded if needed)
+  - Ambulance Type (Govt/Private)
+  - Contact Number
+  - **"Track" button** (link to `track.html?driverID=...`)
+
+#### 3. `track.html` – Live Ambulance Tracking
+- Leaflet map centered on user
+- Show live ambulance marker from Firebase
+- Show route and estimated distance (use polyline if no directions plugin)
+- Show patient name and contact if passed in URL (optional)
+
+#### 4. `firstaid.html` – First Aid Tips
+- Input box: "Describe your symptoms"
+- On submit:
+  - (Optional) Call Gemini API
+  - OR simulate response with dummy first aid instructions
+- Show results in a chat-style layout with colored bubbles
+
+#### 5. `hospitals.html` – Nearby Hospital Suggestions
+- Auto-detect user location
+- Dropdown: Type of emergency (cardiac, trauma, neuro, etc.)
+- Display 3–5 hospital cards (AIIMS, Apollo, Max, Fortis)
+  - Name, specialty, rating, and **"Open in Maps"** link
+
+#### 6. `driver.html` – Driver Panel (Login Required)
+- Firebase login with email/password
+- After login:
+  - Simulate movement (lat/lng update every 2s)
+  - Write to Firebase under `/ambulances/{driverID}`
+  - Show map with ambulance position
+  - Button: “Accept Request” → sets status in Firebase
+
+---
+
+### 🔥 Firebase Setup
+- Use Firebase Authentication for driver login only
+- Store ambulance data at:
+  - `/ambulances/{driverID}` → `{ lat, lng, type, phone, status }`
+- Store patient request at:
+  - `/requests/{randomID}` → `{ name, phone, problem, timestamp, driverID (optional) }`
+
+---
+
+### 🌐 Map & UI Tech
+- Use **Leaflet.js + OpenStreetMap**
+  - Real-time tracking using Firebase updates
+  - No Google Maps API needed
+- UI must be **clean, mobile-responsive, and modern**
+  - Use **TailwindCSS** for layout and colors
+  - Use red (`#D32F2F`), blue (`#1976D2`), and white (`#FFFFFF`)
+  - Use modern icons (Heroicons / Font Awesome)
+  - Add hover effects, subtle animations, and proper spacing
+
+---
+
+### ✨ Simulated GPS Movement (For driver.html)
+```js
+let lat = 28.6139, lng = 77.2090;
+setInterval(() => {
+  lat += 0.0001;
+  lng += 0.0001;
+  firebase.database().ref('ambulances/driver001').set({ lat, lng });
+}, 2000);
+✅ Bonus Enhancements (if time allows)
+Add ETA countdown on tracking page
+
+Add emergency button (call ambulance directly)
+
+OTP screen before patient boards ambulance
+
+Display driver and patient info on tracking page
+
+🧪 Demo-Ready Flow
+Patient opens index.html, clicks "Request Ambulance"
+
+Enters name, phone, and emergency issue
+
+Views nearby ambulances on map and selects one
+
+Driver logs in via driver.html and sees request
+
+Patient can track ambulance live via track.html
