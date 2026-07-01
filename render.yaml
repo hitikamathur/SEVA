@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: seva
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+        placeholder: "Enter your MongoDB Atlas Connection String"
+      - key: GEMINI_API_KEY
+        sync: false
+        placeholder: "API_KEY"
+      - key: JWT_SECRET
+        sync: false
+        placeholder: "JWT_SECRET"
