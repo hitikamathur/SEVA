@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { subscribeToAmbulances, subscribeToAmbulanceLocation, subscribeToRequests, createRequest } from "@/lib/api";
 import BookingModal from "@/components/BookingModal";
+import { useLocation } from "wouter";
 
 // Leaflet imports
 import L from "leaflet";
@@ -19,10 +20,21 @@ L.Icon.Default.mergeOptions({
 });
 
 export default function Dashboard() {
+  const [, setLocation] = useLocation();
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [ambulances, setAmbulances] = useState<any>({});
   const [locationStatus, setLocationStatus] = useState<string>("");
-  const [bookingData, setBookingData] = useState<any>(null);
+  const [bookingData, setBookingData] = useState<any>(() => {
+    const saved = localStorage.getItem("currentBooking");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        localStorage.removeItem("currentBooking");
+      }
+    }
+    return null;
+  });
   const [activeAmbulance, setActiveAmbulance] = useState<any>(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState<any>(null);
@@ -35,6 +47,13 @@ export default function Dashboard() {
   const routeLayerRef = useRef<L.Polyline | null>(null);
   const activeUnsubscribeRef = useRef<(() => void) | null>(null);
 
+  // Sync redirect if no booking is active
+  useEffect(() => {
+    if (!bookingData) {
+      setLocation("/");
+    }
+  }, [bookingData, setLocation]);
+
   // Initialize page & restore booking state
   useEffect(() => {
     // 1. Subscribe to all ambulances
@@ -42,18 +61,7 @@ export default function Dashboard() {
       setAmbulances(data);
     });
 
-    // 2. Restore active booking
-    const savedBooking = localStorage.getItem("currentBooking");
-    if (savedBooking) {
-      try {
-        const parsed = JSON.parse(savedBooking);
-        setBookingData(parsed);
-      } catch (e) {
-        localStorage.removeItem("currentBooking");
-      }
-    }
-
-    // 3. Scan user location on load
+    // 2. Scan user location on load
     getCurrentLocation();
 
     return () => {
