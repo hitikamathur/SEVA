@@ -285,6 +285,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const updatedAmb = await storage.updateAmbulanceLocation(driverId, nextLat, nextLng);
           
           broadcastSingleAmbulanceUpdate(driverId, updatedAmb);
+
+          // Sync the global stream with the updated coordinates
+          const allAmbulances = await storage.getAllAmbulances();
+          broadcastAmbulanceUpdate(allAmbulances);
         }
       }
     } catch (err) {
