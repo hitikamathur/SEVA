@@ -17,6 +17,22 @@ export default function Home() {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [nearestInfo, setNearestInfo] = useState<{ distance: number; eta: number } | null>(null);
 
+  const [isBookingActive, setIsBookingActive] = useState(false);
+
+  useEffect(() => {
+    const checkBooking = () => {
+      const saved = localStorage.getItem("currentBooking");
+      setIsBookingActive(!!saved);
+    };
+    checkBooking();
+    window.addEventListener("storage", checkBooking);
+    const interval = setInterval(checkBooking, 500);
+    return () => {
+      window.removeEventListener("storage", checkBooking);
+      clearInterval(interval);
+    };
+  }, []);
+
   useEffect(() => {
     const unsubscribe = subscribeToAmbulances((data) => {
       setAmbulances(data);
@@ -128,21 +144,16 @@ export default function Home() {
                 <PlusCircle className="h-4 w-4" />
                 Request Ambulance Now
               </Button>
-              <Button
-                onClick={() => {
-                  const saved = localStorage.getItem("currentBooking");
-                  if (saved) {
-                    setLocation("/dashboard");
-                  } else {
-                    alert("No active booking found. Please request an ambulance first to start tracking.");
-                  }
-                }}
-                variant="outline"
-                className="border-gray-200 text-gray-700 font-semibold px-8 py-6 rounded-2xl text-sm bg-white hover:bg-gray-50 flex items-center gap-2"
-              >
-                <MapPin className="h-4 w-4 text-red-600" />
-                Track Ambulance <ArrowRight className="h-4 w-4" />
-              </Button>
+              {isBookingActive && (
+                <Button
+                  onClick={() => setLocation("/dashboard")}
+                  variant="outline"
+                  className="border-gray-200 text-gray-700 font-semibold px-8 py-6 rounded-2xl text-sm bg-white hover:bg-gray-50 flex items-center gap-2"
+                >
+                  <MapPin className="h-4 w-4 text-red-600" />
+                  Track Ambulance <ArrowRight className="h-4 w-4" />
+                </Button>
+              )}
             </div>
 
             {/* Trust points */}
