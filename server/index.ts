@@ -60,9 +60,9 @@ app.use((req, res, next) => {
   // ✅ FIXED: host is now localhost to avoid ENOTSUP on Windows
   server.listen(
     port,
-    "localhost",
+    "0.0.0.0",
     () => {
-      log(`🚑 SEVA server is running on http://localhost:${port}`);
+      log(`🚑 SEVA server is running on http://0.0.0.0:${port}`);
     }
   );
 })();
