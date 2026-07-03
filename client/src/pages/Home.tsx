@@ -103,7 +103,6 @@ export default function Home() {
           <div className="lg:col-span-7 space-y-5 text-left">
             {/* Badge */}
             <div className="inline-flex items-center gap-2 bg-red-50 border border-red-100 rounded-full px-4 py-1.5 shadow-sm">
-              <span className="w-1.5 h-1.5 bg-red-600 rounded-full animate-ping" />
               <span className="text-[10px] font-black text-red-600 uppercase tracking-wider">
                 Fast. Reliable. Life-Saving.
               </span>
@@ -171,7 +170,6 @@ export default function Home() {
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-red-600 rounded-full animate-pulse" />
                 <div>
                   <span className="block text-xs font-bold text-slate-900">Live GPS Tracking</span>
                   <span className="block text-[10px] text-gray-400">Real-time location updates</span>

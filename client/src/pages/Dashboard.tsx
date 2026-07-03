@@ -317,7 +317,7 @@ export default function Dashboard() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 fade-in">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-black text-gray-950 tracking-tight">SEVA Command Center</h1>
+          <h1 className="text-3xl font-black text-gray-950 tracking-tight">SEVA Emergency Dashboard</h1>
           <p className="text-gray-500 mt-1">Real-time emergency dispatch and tracking control dashboard</p>
         </div>
         {!bookingData && (
