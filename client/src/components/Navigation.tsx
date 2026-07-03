@@ -7,14 +7,16 @@ export default function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDriverLoggedIn, setIsDriverLoggedIn] = useState(false);
   const [driverName, setDriverName] = useState("");
+  const [isBookingActive, setIsBookingActive] = useState(false);
 
-  // Check localStorage for active driver session on every render
+  // Check localStorage for active session/bookings on every render
   useEffect(() => {
-    const checkDriver = () => {
-      const saved = localStorage.getItem("currentDriver");
-      if (saved) {
+    const checkStorage = () => {
+      // 1. Driver check
+      const savedDriver = localStorage.getItem("currentDriver");
+      if (savedDriver) {
         try {
-          const parsed = JSON.parse(saved);
+          const parsed = JSON.parse(savedDriver);
           setIsDriverLoggedIn(true);
           setDriverName(parsed.displayName || "Driver");
         } catch {
@@ -25,23 +27,27 @@ export default function Navigation() {
         setIsDriverLoggedIn(false);
         setDriverName("");
       }
+
+      // 2. Booking check
+      const savedBooking = localStorage.getItem("currentBooking");
+      setIsBookingActive(!!savedBooking);
     };
 
-    checkDriver();
+    checkStorage();
 
-    // Listen for storage changes (e.g. login/logout in Driver.tsx)
-    window.addEventListener("storage", checkDriver);
-    // Also poll every 500ms for same-tab changes (localStorage doesn't fire 'storage' in same tab)
-    const interval = setInterval(checkDriver, 500);
+    // Listen for storage changes
+    window.addEventListener("storage", checkStorage);
+    // Poll every 500ms for same-tab updates
+    const interval = setInterval(checkStorage, 500);
     return () => {
-      window.removeEventListener("storage", checkDriver);
+      window.removeEventListener("storage", checkStorage);
       clearInterval(interval);
     };
   }, []);
 
   const customerNavItems = [
     { href: "/", label: "Home" },
-    { href: "/dashboard", label: "Track Ambulance" },
+    ...(isBookingActive ? [{ href: "/dashboard", label: "Track Ambulance" }] : []),
     { href: "/firstaid", label: "First Aid AI" },
     { href: "/hospitals", label: "Hospitals" },
   ];
