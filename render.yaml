@@ -1,19 +1,25 @@
 services:
   - type: web
-    name: seva
-    runtime: node
-    plan: free
+    name: seva-ambulance-portal
+    env: node
     buildCommand: npm install && npm run build
     startCommand: npm run start
     envVars:
       - key: NODE_ENV
         value: production
-      - key: MONGODB_URI
+      - key: PORT
+        value: 10000
+      - key: MYSQL_HOST
         sync: false
-        placeholder: "Enter your MongoDB Atlas Connection String"
+      - key: MYSQL_PORT
+        value: 3306
+      - key: MYSQL_USER
+        sync: false
+      - key: MYSQL_PASSWORD
+        sync: false
+      - key: MYSQL_DATABASE
+        sync: false
       - key: GEMINI_API_KEY
         sync: false
-        placeholder: "API_KEY"
       - key: JWT_SECRET
         sync: false
-        placeholder: "JWT_SECRET"
