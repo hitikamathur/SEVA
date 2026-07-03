@@ -267,7 +267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Progress active bookings along step coordinates
-      const activeRequests = requests.filter(r => r.status === "en-route" && r.driverId);
+      const activeRequests = requests.filter(r => (r.status === "accepted" || r.status === "en-route") && r.driverId);
       for (const req of activeRequests) {
         const driverId = req.driverId!;
         const ambulance = await storage.getAmbulanceByDriverId(driverId);
