@@ -17,13 +17,33 @@ export let pool: mysql.Pool;
 
 export async function connectDB() {
   try {
+    const dbName = process.env.MYSQL_DATABASE || "seva";
+
+    // 1. Establish connection without selecting a DB to check/create the DB first
+    const tempConfig = MYSQL_URI
+      ? { uri: MYSQL_URI }
+      : {
+          host: process.env.MYSQL_HOST || "localhost",
+          port: Number(process.env.MYSQL_PORT) || 3306,
+          user: process.env.MYSQL_USER || "root",
+          password: process.env.MYSQL_PASSWORD || "",
+        };
+
+    const tempConn = MYSQL_URI
+      ? await mysql.createConnection(MYSQL_URI)
+      : await mysql.createConnection(tempConfig);
+
+    await tempConn.execute(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
+    await tempConn.end();
+
+    // 2. Now establish the actual connection pool with the database selected
     pool = MYSQL_URI
       ? mysql.createPool({ uri: MYSQL_URI, waitForConnections: true, connectionLimit: 10 })
       : mysql.createPool({ ...(connectionConfig as any), waitForConnections: true, connectionLimit: 10 });
 
-    // Test the connection
+    // Test pool connection
     const conn = await pool.getConnection();
-    console.log("✅ MySQL connected successfully");
+    console.log(`✅ Connected to MySQL database: "${dbName}"`);
     conn.release();
 
     // Create tables if they don't exist
