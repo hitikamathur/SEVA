@@ -201,7 +201,13 @@ export default function Home() {
             {services.map(({ icon: Icon, label, desc, href, bg, tc }) => (
               <div
                 key={label}
-                onClick={() => setLocation(href)}
+                onClick={() => {
+                  if (label === "Find & Dispatch") {
+                    setShowModal(true);
+                  } else {
+                    setLocation(href);
+                  }
+                }}
                 className="group bg-white border border-gray-100 rounded-2xl p-5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.03)] transition-all duration-200 cursor-pointer flex items-start gap-4 text-left h-28"
               >
                 <div className={`${bg} ${tc} p-3.5 rounded-full flex-shrink-0`}>
