@@ -41,7 +41,7 @@ export default function Navigation() {
 
   const customerNavItems = [
     { href: "/", label: "Home" },
-    { href: "/dashboard", label: "Dashboard" },
+    { href: "/dashboard", label: "Track Ambulance" },
     { href: "/firstaid", label: "First Aid AI" },
     { href: "/hospitals", label: "Hospitals" },
   ];

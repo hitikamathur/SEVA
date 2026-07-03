@@ -134,7 +134,7 @@ export default function Home() {
                 className="border-gray-200 text-gray-700 font-semibold px-8 py-6 rounded-2xl text-sm bg-white hover:bg-gray-50 flex items-center gap-2"
               >
                 <MapPin className="h-4 w-4 text-red-600" />
-                Live Tracking Map <ArrowRight className="h-4 w-4" />
+                Track Ambulance <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
 
