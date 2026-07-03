@@ -89,7 +89,7 @@ export default function BookingModal({
         otp: otp
       };
 
-      // Call backend to store in MongoDB
+      // Call backend to store in database
       try {
         const mongoRequestData = {
           patientName: bookingData.name,
@@ -106,7 +106,7 @@ export default function BookingModal({
           bookingData.ambulanceId = createdReq.driverId || "auto-assign";
         }
       } catch (apiError) {
-        console.log("Failed to persist request to MongoDB, caching locally:", apiError);
+        console.log("Failed to persist request to database, caching locally:", apiError);
         const requests = JSON.parse(localStorage.getItem('ambulance-requests') || '[]');
         const localId = Date.now().toString();
         bookingData.id = localId;

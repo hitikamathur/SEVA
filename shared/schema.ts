@@ -42,6 +42,7 @@ export type Request = {
   lng:          number | null;
   driverId:     string | null;
   status:       string;
+  otp:          string | null;
   createdAt:    Date;
 };
 

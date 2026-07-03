@@ -62,7 +62,7 @@ export default function Hospitals() {
     getUserLocation();
   }, []);
 
-  // Fetch from MongoDB server
+  // Fetch from database
   useEffect(() => {
     fetch("/api/hospitals")
       .then(res => res.json())

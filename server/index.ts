@@ -42,7 +42,7 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Connect to MongoDB
+  // Connect to MySQL
   await connectDB();
 
   const server = await registerRoutes(app);

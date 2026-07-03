@@ -17,7 +17,7 @@ SEVA is a premium, real-time emergency medical response platform designed to bri
 ## 🛠️ Technology Stack
 
 * **Front-end:** React (TypeScript), Vite, Tailwind CSS, Leaflet Maps, Wouter SPA router.
-* **Back-end:** Node.js, Express, MongoDB (Mongoose ODM).
+* **Back-end:** Node.js, Express, MySQL (mysql2 driver).
 * **AI Engine:** Google Gemini AI API (`gemini-2.5-flash`).
 * **Map Routing:** OpenStreetMap (OSRM API).
 * **Data Streams:** Server-Sent Events (SSE) for real-time ambulance coordinate telemetry.
@@ -29,7 +29,7 @@ SEVA is a premium, real-time emergency medical response platform designed to bri
 ### 1. Prerequisites
 Ensure you have the following installed on your machine:
 * **Node.js** (v18 or higher)
-* **MongoDB Community Server** (running locally on port `27017`)
+* **MySQL** (v8.0 or higher, running locally on port `3306`)
 * **Git**
 
 ### 2. Clone & Install Dependencies
@@ -45,10 +45,16 @@ npm install
 ### 3. Environment Setup
 Create a `.env` file in the root directory:
 ```env
-MONGODB_URI=mongodb://localhost:27017/seva
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
+MYSQL_USER=root
+MYSQL_PASSWORD=
+MYSQL_DATABASE=seva
 JWT_SECRET=super_secret_jwt_key
 GEMINI_API_KEY=your_gemini_api_key_here
 ```
+
+> **Note:** Create the `seva` database in MySQL before starting: `CREATE DATABASE seva;`
 
 ### 4. Running the Project
 ```bash
