@@ -129,7 +129,14 @@ export default function Home() {
                 Request Ambulance Now
               </Button>
               <Button
-                onClick={() => setLocation("/dashboard")}
+                onClick={() => {
+                  const saved = localStorage.getItem("currentBooking");
+                  if (saved) {
+                    setLocation("/dashboard");
+                  } else {
+                    alert("No active booking found. Please request an ambulance first to start tracking.");
+                  }
+                }}
                 variant="outline"
                 className="border-gray-200 text-gray-700 font-semibold px-8 py-6 rounded-2xl text-sm bg-white hover:bg-gray-50 flex items-center gap-2"
               >
