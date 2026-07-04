@@ -1,32 +1,32 @@
 import mysql from "mysql2/promise";
 
-const MYSQL_URI = process.env.MYSQL_URI || "";
+const MYSQL_URI = process.env.MYSQL_URI || process.env.MYSQL_URL || process.env.DATABASE_URL || "";
 
 // Parse individual MySQL connection params as fallback
 const connectionConfig = MYSQL_URI
   ? { uri: MYSQL_URI }
   : {
-      host: process.env.MYSQL_HOST || "localhost",
-      port: Number(process.env.MYSQL_PORT) || 3306,
-      user: process.env.MYSQL_USER || "root",
-      password: process.env.MYSQL_PASSWORD || "",
-      database: process.env.MYSQL_DATABASE || "seva",
+      host: process.env.MYSQL_HOST || process.env.MYSQLHOST || "localhost",
+      port: Number(process.env.MYSQL_PORT || process.env.MYSQLPORT) || 3306,
+      user: process.env.MYSQL_USER || process.env.MYSQLUSER || "root",
+      password: process.env.MYSQL_PASSWORD || process.env.MYSQLPASSWORD || "",
+      database: process.env.MYSQL_DATABASE || process.env.MYSQLDATABASE || "seva",
     };
 
 export let pool: mysql.Pool;
 
 export async function connectDB() {
   try {
-    const dbName = process.env.MYSQL_DATABASE || "seva";
+    const dbName = process.env.MYSQL_DATABASE || process.env.MYSQLDATABASE || "seva";
 
     // 1. Establish connection without selecting a DB to check/create the DB first
     const tempConfig = MYSQL_URI
       ? { uri: MYSQL_URI }
       : {
-          host: process.env.MYSQL_HOST || "localhost",
-          port: Number(process.env.MYSQL_PORT) || 3306,
-          user: process.env.MYSQL_USER || "root",
-          password: process.env.MYSQL_PASSWORD || "",
+          host: process.env.MYSQL_HOST || process.env.MYSQLHOST || "localhost",
+          port: Number(process.env.MYSQL_PORT || process.env.MYSQLPORT) || 3306,
+          user: process.env.MYSQL_USER || process.env.MYSQLUSER || "root",
+          password: process.env.MYSQL_PASSWORD || process.env.MYSQLPASSWORD || "",
         };
 
     const tempConn = MYSQL_URI
